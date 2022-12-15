@@ -4,6 +4,7 @@ using UnityEngine;
 using Cinemachine;
 using StarterAssets;
 using UnityEngine.InputSystem;
+using System.Threading;
 
 public class ThirdPersonShooterController : MonoBehaviour
 {
@@ -22,21 +23,33 @@ public class ThirdPersonShooterController : MonoBehaviour
     }
     private void Update()
     {
-        if (starterAssetsInputs.aim)
-        {
-            aimVirtualCamera.gameObject.SetActive(true);
-            thirdPersonController.SetSensitivity(aimSensitivity);
-        }
-        else
-        {
-            aimVirtualCamera.gameObject.SetActive(false);
-            thirdPersonController.SetSensitivity(normalSensitivity);
-        }
+        Vector3 mouseWorldPosition = Vector3.zero;
+
         Vector2 screenCenterrpoint = new Vector2(Screen.width / 2f, Screen.height / 2f);
         Ray ray = Camera.main.ScreenPointToRay(screenCenterrpoint);
         if (Physics.Raycast(ray, out RaycastHit raycastHit, 999f, aimColliderLayerMask))
         {
             debugTransform.position = raycastHit.point;
+             mouseWorldPosition = raycastHit.point;
+            if (starterAssetsInputs.aim)
+        {
+            aimVirtualCamera.gameObject.SetActive(true);
+            thirdPersonController.SetSensitivity(aimSensitivity);
+            thirdPersonController.SetRotateOnMove(false);
+
+                Vector3 worldAimTarget = mouseWorldPosition;
+                worldAimTarget.y = transform.position.y;
+                Vector3 aimDirection = (worldAimTarget - transform.position).normalized;
+
+                transform.forward = Vector3.Lerp(transform.forward, aimDirection, Time.deltaTime * 20f);
+        }
+        else
+        {
+            aimVirtualCamera.gameObject.SetActive(false);
+            thirdPersonController.SetSensitivity(normalSensitivity);
+                thirdPersonController.SetRotateOnMove(true);
+            }
+     
         }
             }
    
